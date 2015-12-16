@@ -1,0 +1,39 @@
+---
+# tasks file for kyl191.letsencrypt
+- name: install git (dnf)
+  dnf: name=git state=latest
+  when: ansible_distribution == "Fedora" and ansible_distribution_major_version|int >= 22
+
+- name: install git (yum)
+  yum: package=git state=latest
+  when: ansible_pkg_mgr == "yum" and not (ansible_distribution == "Fedora" and ansible_distribution_major_version|int >= 22)
+
+- name: Checkout letsencrypt git repo
+  git: repo=https://github.com/letsencrypt/letsencrypt dest={{ letsencrypt_install_path }}
+
+- name: Run letsencrypt setup
+  command: ./letsencrypt-auto chdir={{ letsencrypt_install_path }}
+  ignore_errors: yes
+
+- name: land letsencrypt config file
+  template: src=letsencrypt-config.j2 dest=/etc/letsencrypt/cli.ini owner=root group=root
+  tags:
+    - le_config
+
+- name: Generate cert
+  include: gen_cert.yml
+  with_dict: "{{letsencrypt_sites_var}}"
+  tags:
+    - le_cert
+
+- name: Link private keys in letsencrypt directory to webserver ssl folder
+  file: src=/etc/letsencrypt/live/{{item.key}}/privkey.pem dest=/etc/nginx/ssl/{{item.key}}.key state=link
+  with_dict: "{{letsencrypt_sites_var}}"
+  tags:
+    - le_link
+
+- name: Link public cert in letsencrypt directory to webserver ssl folder
+  file: src=/etc/letsencrypt/live/{{item.key}}/fullchain.pem dest=/etc/nginx/ssl/{{item.key}}.crt state=link
+  with_dict: "{{letsencrypt_sites_var}}"
+  tags:
+    - le_link

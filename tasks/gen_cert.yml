@@ -1,0 +1,38 @@
+# should test against the staging environment as per https://community.letsencrypt.org/t/testing-against-the-lets-encrypt-staging-environment/6763
+# add --server https://acme-staging.api.letsencrypt.org/directory to the commands
+- name: Generate certs in common directory w/ alt names
+  command: >
+    ./letsencrypt-auto certonly --webroot -w {{letsencrypt_webroot_prefix}}/{{item.key}}/ -d {{item.key}} -d {{item.value.alt}} -c /etc/letsencrypt/cli.ini  --renew-by-default --server https://acme-staging.api.letsencrypt.org/directory
+    chdir={{ letsencrypt_install_path }}
+  when: item.value.root is not defined and item.value.alt is defined
+  with_dict: "{{letsencrypt_sites_var}}"
+  tags:
+    - le_cert
+
+- name: Generate certs in common directory w/out alt names
+  command: >
+    ./letsencrypt-auto certonly --webroot -w {{letsencrypt_webroot_prefix}}/{{item.key}}/ -d {{item.key}} -c /etc/letsencrypt/cli.ini --renew-by-default --server https://acme-staging.api.letsencrypt.org/directory
+    chdir={{ letsencrypt_install_path }}
+  when: item.value.root is not defined and item.value.alt is not defined
+  with_dict: "{{letsencrypt_sites_var}}"
+  tags:
+    - le_cert
+
+- name: Generate certs in special directories w/ alt names
+  command: >
+    ./letsencrypt-auto certonly --webroot -w {{item.value.root}}/ -d {{item.key}} -d {{item.value.alt}} -c /etc/letsencrypt/cli.ini --renew-by-default --server https://acme-staging.api.letsencrypt.org/directory
+    chdir={{ letsencrypt_install_path }}
+  when: item.value is defined and item.value.root is defined and item.value.alt is defined
+  with_dict: "{{letsencrypt_sites_var}}"
+  tags:
+    - le_cert
+
+- name: Generate certs in special directories w/out alt names
+  command: >
+    ./letsencrypt-auto certonly --webroot -w {{item.value.root}}/ -d {{item.key}} -c /etc/letsencrypt/cli.ini --renew-by-default --server https://acme-staging.api.letsencrypt.org/directory
+    chdir={{ letsencrypt_install_path }}
+  when: item.value is defined and item.value.root is defined and item.value.alt is not defined
+  with_dict: "{{letsencrypt_sites_var}}"
+  tags:
+    - le_cert
+
