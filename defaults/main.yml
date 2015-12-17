@@ -1,5 +1,7 @@
 ---
 # defaults file for kyl191.letsencrypt
-letsencrypt_install_path: /root/letsencrypt/
+letsencrypt_install_path: /root/letsencrypt
 letsencrypt_webroot_prefix: /var/www
+letsencrypt_webserver_sslroot: /etc/nginx/ssl
 letsencrypt_sites_var: letsencrypt_sites
+letsencrypt_server: https://acme-v01.api.letsencrypt.org/directory

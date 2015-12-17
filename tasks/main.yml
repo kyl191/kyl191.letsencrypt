@@ -1,19 +1,30 @@
 ---
-# tasks file for kyl191.letsencrypt
+# Unconditionally reload nginx to ake sure we're up to date on configs
+- name: reload nginx
+  service: name=nginx state=reloaded
+
 - name: install git (dnf)
   dnf: name=git state=latest
   when: ansible_distribution == "Fedora" and ansible_distribution_major_version|int >= 22
+  tags:
+    - le_setup
 
 - name: install git (yum)
-  yum: package=git state=latest
+  yum: name=git state=latest
   when: ansible_pkg_mgr == "yum" and not (ansible_distribution == "Fedora" and ansible_distribution_major_version|int >= 22)
+  tags:
+    - le_setup
 
 - name: Checkout letsencrypt git repo
   git: repo=https://github.com/letsencrypt/letsencrypt dest={{ letsencrypt_install_path }}
+  tags:
+    - le_setup
 
 - name: Run letsencrypt setup
   command: ./letsencrypt-auto chdir={{ letsencrypt_install_path }}
-  ignore_errors: yes
+  ignore_errors: yes # no parameters to letsencrypt == error
+  tags:
+    - le_setup
 
 - name: land letsencrypt config file
   template: src=letsencrypt-config.j2 dest=/etc/letsencrypt/cli.ini owner=root group=root
@@ -22,18 +33,36 @@
 
 - name: Generate cert
   include: gen_cert.yml
-  with_dict: "{{letsencrypt_sites_var}}"
   tags:
     - le_cert
 
+- name: Get list of non-symbolic link certs
+  command: find {{letsencrypt_webserver_sslroot}} -maxdepth 1 ! -type l
+  register: non_le_certs
+  changed_when: false  # Never report as changed
+
+- name: Remove non-LE cert private keys
+  file: path={{letsencrypt_webserver_sslroot}}/{{item.key}}.key state=absent
+  with_dict: "{{letsencrypt_sites_var}}"
+  when: non_le_certs.stdout.find("{{item.key}}.key") != -1
+  tags:
+    - le_link
+
+- name: Remove non-LE cert public keys
+  file: path={{letsencrypt_webserver_sslroot}}/{{item.key}}.crt state=absent
+  with_dict: "{{letsencrypt_sites_var}}"
+  when: non_le_certs.stdout.find("{{item.key}}.crt") != -1
+  tags:
+    - le_link
+
 - name: Link private keys in letsencrypt directory to webserver ssl folder
-  file: src=/etc/letsencrypt/live/{{item.key}}/privkey.pem dest=/etc/nginx/ssl/{{item.key}}.key state=link
+  file: src=/etc/letsencrypt/live/{{item.key}}/privkey.pem dest={{letsencrypt_webserver_sslroot}}/{{item.key}}.key state=link
   with_dict: "{{letsencrypt_sites_var}}"
   tags:
     - le_link
 
 - name: Link public cert in letsencrypt directory to webserver ssl folder
-  file: src=/etc/letsencrypt/live/{{item.key}}/fullchain.pem dest=/etc/nginx/ssl/{{item.key}}.crt state=link
+  file: src=/etc/letsencrypt/live/{{item.key}}/fullchain.pem dest={{letsencrypt_webserver_sslroot}}/{{item.key}}.crt state=link
   with_dict: "{{letsencrypt_sites_var}}"
   tags:
     - le_link

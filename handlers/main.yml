@@ -1,2 +1,7 @@
----
-# handlers file for kyl191.letsencrypt
+- name: restart nginx
+  service: name=nginx state=restarted
+  sudo: yes
+
+- name: reload nginx
+  service: name=nginx state=reloaded
+  sudo: yes
