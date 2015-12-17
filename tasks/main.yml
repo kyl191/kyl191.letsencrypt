@@ -2,6 +2,7 @@
 # Unconditionally reload nginx to ake sure we're up to date on configs
 - name: reload nginx
   service: name=nginx state=reloaded
+  ignore_errors: yes # nginx might not exist, don't fall over if it isn't available
 
 - name: install git (dnf)
   dnf: name=git state=latest
@@ -41,14 +42,14 @@
   register: non_le_certs
   changed_when: false  # Never report as changed
 
-- name: Remove non-LE cert private keys
+- name: Remove any non-LE cert private keys
   file: path={{letsencrypt_webserver_sslroot}}/{{item.key}}.key state=absent
   with_dict: "{{letsencrypt_sites_var}}"
   when: non_le_certs.stdout.find("{{item.key}}.key") != -1
   tags:
     - le_link
 
-- name: Remove non-LE cert public keys
+- name: Remove any non-LE cert public keys
   file: path={{letsencrypt_webserver_sslroot}}/{{item.key}}.crt state=absent
   with_dict: "{{letsencrypt_sites_var}}"
   when: non_le_certs.stdout.find("{{item.key}}.crt") != -1
@@ -66,3 +67,4 @@
   with_dict: "{{letsencrypt_sites_var}}"
   tags:
     - le_link
+  notify: reload nginx

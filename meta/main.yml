@@ -1,7 +1,7 @@
 ---
 galaxy_info:
   author: Kyle Lexmond
-  description: Install Let's Encrypt on EPEL/Fedora
+  description: Install Let's Encrypt on EPEL/Fedora & generate certs
   license: MIT
   min_ansible_version: 1.2
   platforms:

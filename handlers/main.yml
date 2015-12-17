@@ -1,7 +1,4 @@
-- name: restart nginx
-  service: name=nginx state=restarted
-  sudo: yes
-
 - name: reload nginx
   service: name=nginx state=reloaded
+  ignore_errors: yes # nginx as a service might not exist
   sudo: yes

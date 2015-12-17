@@ -1,38 +1,72 @@
 Role Name
 =========
 
-A brief description of the role goes here.
+Ansible role for installing Let's Encrypt & creating certs
 
 Requirements
 ------------
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+The sites var expects the list of sites to create keys for to be stored as a dict.
+By default this playbook expects:
+- all sites are stored in a common directory (like /var/www/site.doma.in)
+  - if this is not case, add root: /path/to/webroot as a key under the site name
+- each key in the dict is a domain
+  - no other options
+- each site can only have 1 alternate name
+  - specify an alternate domain with alt: www.doma.in
+- by default, you're creating a new legit cert.
+  - For testing, override the default with letsencrypt_server: https://acme-staging.api.letsencrypt.org/directory
+
+You *MUST* specify an email address to use in the playbook, like `letsencrypt_email_address: "letsencrypt@demo.net"`
 
 Role Variables
 --------------
-
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+Defaults:
+letsencrypt_install_path: /root/letsencrypt
+letsencrypt_webroot_prefix: /var/www
+letsencrypt_webserver_sslroot: /etc/nginx/ssl
+letsencrypt_sites_var: letsencrypt_sites
+letsencrypt_server: https://acme-v01.api.letsencrypt.org/directory
 
 Dependencies
 ------------
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+None. This playbook assumes the existence of nginx, but doesn't fail if nginx isn't available.
 
 Example Playbook
 ----------------
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+Standalone Let's Encrypt example:
+  roles:
+    - kyl191.letsencrypt
+  vars:
+    letsencrypt_sites:
+      test.net: ~
+      demo.test.io:
+        alt: www.demo.test.io
+        root: /home/test/demo/
+    letsencrypt_email_address: "letsencrypt@demo.net"
+    letsencrypt_server: https://acme-staging.api.letsencrypt.org/directory
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+Integration with other roles - let's encrypt can use a dict of sites defined in another var
+Pass letsencrypt_sites_var the name of the var:
+  roles:
+    - nginx-proxy
+    - kyl191.letsencrypt
+  vars:
+    nginx_sites:
+       test.net: ~
+      demo.test.io:
+        root: /home/test/demo/
+        alt: www.demo.test.io
+    letsencrypt_sites_var: nginx_sites
 
 License
 -------
 
-BSD
+MIT
 
 Author Information
 ------------------
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+Complaints/comments to https://github.com/kyl191/kyl191.letsencrypt
