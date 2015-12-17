@@ -37,6 +37,7 @@ Example Playbook
 ----------------
 
 Standalone Let's Encrypt example:
+```
   roles:
     - kyl191.letsencrypt
   vars:
@@ -47,9 +48,10 @@ Standalone Let's Encrypt example:
         root: /home/test/demo/
     letsencrypt_email_address: "letsencrypt@demo.net"
     letsencrypt_server: https://acme-staging.api.letsencrypt.org/directory
-
+```
 Integration with other roles - let's encrypt can use a dict of sites defined in another var
 Pass letsencrypt_sites_var the name of the var:
+```
   roles:
     - nginx-proxy
     - kyl191.letsencrypt
@@ -60,7 +62,7 @@ Pass letsencrypt_sites_var the name of the var:
         root: /home/test/demo/
         alt: www.demo.test.io
     letsencrypt_sites_var: nginx_sites
-
+```
 License
 -------
 
