@@ -41,12 +41,14 @@
   command: find {{letsencrypt_webserver_sslroot}} -maxdepth 1 ! -type l
   register: non_le_certs
   changed_when: false  # Never report as changed
+  tags: >
+    - le_link
 
 - name: Remove any non-LE cert private keys
   file: path={{letsencrypt_webserver_sslroot}}/{{item.key}}.key state=absent
   with_dict: "{{letsencrypt_sites_var}}"
   when: non_le_certs.stdout.find("{{item.key}}.key") != -1
-  tags:
+  tags: >
     - le_link
 
 - name: Remove any non-LE cert public keys
