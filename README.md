@@ -22,10 +22,11 @@ You *MUST* specify an email address to use in the playbook, like `letsencrypt_em
 Role Variables
 --------------
 Defaults:
-letsencrypt_install_path: /root
-letsencrypt_webroot_prefix: /var/www
-letsencrypt_webserver_sslroot: /etc/nginx/ssl
-letsencrypt_server: https://acme-v01.api.letsencrypt.org/directory
+
+- letsencrypt_install_path: /root
+- letsencrypt_webroot_prefix: /var/www
+- letsencrypt_webserver_sslroot: /etc/nginx/ssl
+- letsencrypt_server: https://acme-v01.api.letsencrypt.org/directory
 
 Dependencies
 ------------
