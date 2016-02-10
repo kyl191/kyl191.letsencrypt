@@ -22,10 +22,9 @@ You *MUST* specify an email address to use in the playbook, like `letsencrypt_em
 Role Variables
 --------------
 Defaults:
-letsencrypt_install_path: /root/letsencrypt
+letsencrypt_install_path: /root
 letsencrypt_webroot_prefix: /var/www
 letsencrypt_webserver_sslroot: /etc/nginx/ssl
-letsencrypt_sites_var: letsencrypt_sites
 letsencrypt_server: https://acme-v01.api.letsencrypt.org/directory
 
 Dependencies
@@ -50,18 +49,17 @@ Standalone Let's Encrypt example:
     letsencrypt_server: https://acme-staging.api.letsencrypt.org/directory
 ```
 Integration with other roles - let's encrypt can use a dict of sites defined in another var
-Pass letsencrypt_sites_var the name of the var:
+Pass letsencrypt_sites the var directly:
 ```
   roles:
     - nginx-proxy
-    - kyl191.letsencrypt
+    - { role: kyl191.letsencrypt, letsencrypt_sites: "{{nginx_sites}}", tags: le }
   vars:
     nginx_sites:
        test.net: ~
       demo.test.io:
         root: /home/test/demo/
         alt: www.demo.test.io
-    letsencrypt_sites_var: nginx_sites
 ```
 License
 -------
