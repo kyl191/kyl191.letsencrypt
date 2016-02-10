@@ -6,25 +6,25 @@
     ./letsencrypt-auto certonly --webroot -w {{letsencrypt_webroot_prefix}}/{{item.key}}/ -d {{item.key}} -d {{item.value.alt}} -c /etc/letsencrypt/cli.ini  --keep-until-expiring --server {{letsencrypt_server}}
     chdir={{ letsencrypt_install_path }}
   when: item.value.root is not defined and item.value.alt is defined
-  with_dict: "{{letsencrypt_sites_var}}"
+  with_dict: letsencrypt_sites
 
 - name: Generate certs in common directory w/out alt names
   command: >
     ./letsencrypt-auto certonly --webroot -w {{letsencrypt_webroot_prefix}}/{{item.key}}/ -d {{item.key}} -c /etc/letsencrypt/cli.ini --keep-until-expiring --server {{letsencrypt_server}}
     chdir={{ letsencrypt_install_path }}
   when: item.value.root is not defined and item.value.alt is not defined
-  with_dict: "{{letsencrypt_sites_var}}"
+  with_dict: letsencrypt_sites
 
 - name: Generate certs in special directories w/ alt names
   command: >
     ./letsencrypt-auto certonly --webroot -w {{item.value.root}}/ -d {{item.key}} -d {{item.value.alt}} -c /etc/letsencrypt/cli.ini --keep-until-expiring --server {{letsencrypt_server}}
     chdir={{ letsencrypt_install_path }}
   when: item.value is defined and item.value.root is defined and item.value.alt is defined
-  with_dict: "{{letsencrypt_sites_var}}"
+  with_dict: letsencrypt_sites
 
 - name: Generate certs in special directories w/out alt names
   command: >
     ./letsencrypt-auto certonly --webroot -w {{item.value.root}}/ -d {{item.key}} -c /etc/letsencrypt/cli.ini --keep-until-expiring --server {{letsencrypt_server}}
     chdir={{ letsencrypt_install_path }}
   when: item.value is defined and item.value.root is defined and item.value.alt is not defined
-  with_dict: "{{letsencrypt_sites_var}}"
+  with_dict: letsencrypt_sites
