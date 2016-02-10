@@ -4,28 +4,28 @@
   service: name=nginx state=reloaded
   ignore_errors: yes # nginx might not exist, don't fall over if it isn't available
 
-- name: install git (dnf)
-  dnf: name=git state=latest
+- name: install letsencrypt using dnf
+  dnf: name=letsencrypt state=latest
   when: ansible_distribution == "Fedora" and ansible_distribution_major_version|int >= 22
   tags:
     - le_setup
 
-- name: install git (yum)
-  yum: name=git state=latest
+- name: Install letsencrypt using git
+  include: letsencrypt_git.yml
   when: ansible_pkg_mgr == "yum" and not (ansible_distribution == "Fedora" and ansible_distribution_major_version|int >= 22)
   tags:
     - le_setup
 
-- name: Checkout letsencrypt git repo
-  git: repo=https://github.com/letsencrypt/letsencrypt dest={{ letsencrypt_install_path }}
-  tags:
-    - le_setup
+- name: Use installed letsencrypt
+  set_fact: letsencrypt_command=letsencrypt
+  when: ansible_distribution == "Fedora" and ansible_distribution_major_version|int >= 22
 
-- name: Run letsencrypt setup
-  command: ./letsencrypt-auto chdir={{ letsencrypt_install_path }}
-  ignore_errors: yes # no parameters to letsencrypt == error
-  tags:
-    - le_setup
+- name: Use git letsencrypt
+  set_fact: letsencrypt_command=./letsencrypt-auto
+  when: ansible_pkg_mgr == "yum" and not (ansible_distribution == "Fedora" and ansible_distribution_major_version|int >= 22)
+
+- name: Make sure letsencrypt config directory exists
+  file: path=/etc/letsencrypt state=directory mode=0755
 
 - name: land letsencrypt config file
   template: src=letsencrypt-config.j2 dest=/etc/letsencrypt/cli.ini owner=root group=root

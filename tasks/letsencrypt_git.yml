@@ -1,0 +1,13 @@
+---
+- name: install git (yum)
+  yum: name=git state=latest
+
+- name: Redefine install path for git
+  set_fact: letsencrypt_install_path={{letsencrypt_install_path}}/letsencrypt
+
+- name: Checkout letsencrypt git repo
+  git: repo=https://github.com/letsencrypt/letsencrypt dest={{ letsencrypt_install_path }}
+
+- name: Run letsencrypt setup
+  command: ./letsencrypt-auto -h chdir={{ letsencrypt_install_path }}
+  ignore_errors: yes # no parameters to letsencrypt == error
