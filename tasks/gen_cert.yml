@@ -7,6 +7,8 @@
     chdir={{ letsencrypt_install_path }}
   when: item.value.root is not defined and item.value.alt is defined
   with_dict: letsencrypt_sites
+  register: output
+  changed_when: ("Congratulations! Your certificate and chain have been saved at" in output.stdout)
 
 - name: Generate certs in common directory w/out alt names
   command: >
@@ -14,6 +16,8 @@
     chdir={{ letsencrypt_install_path }}
   when: item.value.root is not defined and item.value.alt is not defined
   with_dict: letsencrypt_sites
+  register: output
+  changed_when: ("Congratulations! Your certificate and chain have been saved at" in output.stdout)
 
 - name: Generate certs in special directories w/ alt names
   command: >
@@ -21,6 +25,8 @@
     chdir={{ letsencrypt_install_path }}
   when: item.value is defined and item.value.root is defined and item.value.alt is defined
   with_dict: letsencrypt_sites
+  register: output
+  changed_when: ("Congratulations! Your certificate and chain have been saved at" in output.stdout)
 
 - name: Generate certs in special directories w/out alt names
   command: >
@@ -28,3 +34,5 @@
     chdir={{ letsencrypt_install_path }}
   when: item.value is defined and item.value.root is defined and item.value.alt is not defined
   with_dict: letsencrypt_sites
+  register: output
+  changed_when: ("Congratulations! Your certificate and chain have been saved at" in output.stdout)
